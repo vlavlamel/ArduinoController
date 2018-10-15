@@ -1,0 +1,10 @@
+<resources>
+	<string name="app_name">ArduinoController</string>
+
+	<string name="not_supported_bluetooth">Your phone does not support Bluetooth</string>
+	<string name="no_permission_bluetooth">Click to give app permissions to use Bluetooth</string>
+	<string name="turn_on_bluetooth">Click to turn on Bluetooth</string>
+
+	<string name="bluetooth">Bluetooth</string>
+	<string name="discover">Discover</string>
+</resources>
