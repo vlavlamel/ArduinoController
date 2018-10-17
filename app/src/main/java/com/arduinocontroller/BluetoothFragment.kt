@@ -3,6 +3,7 @@ package com.arduinocontroller
 import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -13,7 +14,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.*
 import kotlinx.android.synthetic.main.fragment_bluetooth.*
 
-class BluetoothFragment : Fragment() {
+class BluetoothFragment : Fragment(), BluetoothStateChangeListener {
     companion object {
         val REQUEST_ENABLE_BT = 101
     }
@@ -24,10 +25,21 @@ class BluetoothFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        BluetoothHelper.instance.subscribe(this)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.addItemDecoration(DividerDecoration())
-        initActionBar()
         initBluetooth()
+        initActionBar()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        BluetoothHelper.instance.unsubscribe(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BluetoothHelper.instance.cancelDiscovery()
     }
 
     private fun initActionBar() {
@@ -40,22 +52,25 @@ class BluetoothFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         menu?.findItem(R.id.bluetooth)?.setVisible(false)
-        if (BluetoothHelper.instance.checkState(context!!) == BluetoothState.READY) {
+        if (BluetoothHelper.instance.lastBluetoothState == BluetoothState.READY) {
             menu?.findItem(R.id.discovery)?.setVisible(true)
         } else {
             menu?.findItem(R.id.discovery)?.setVisible(false)
         }
     }
 
-    private fun initBluetooth() {
-        when (BluetoothHelper.instance.checkState(context!!)) {
+    override fun stateChange(state: BluetoothState) {
+        when (state) {
             BluetoothState.NOT_SUPPORTED -> {
                 viewFlipper.displayedChild = 1
                 errorText.text = getString(R.string.not_supported_bluetooth)
             }
             BluetoothState.NEED_PERMISSION -> {
                 ActivityCompat.requestPermissions(activity!!,
-                        arrayOf(Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN),
+                        arrayOf(Manifest.permission.BLUETOOTH,
+                                Manifest.permission.BLUETOOTH_ADMIN,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION),
                         REQUEST_ENABLE_BT)
             }
             BluetoothState.DISABLED -> {
@@ -66,7 +81,18 @@ class BluetoothFragment : Fragment() {
                 initPairedDevices()
                 activity?.invalidateOptionsMenu()
             }
+            else -> {
+            }
         }
+    }
+
+    override fun discoveredDevice(device: BluetoothDevice) {
+        (recyclerView.adapter as BluetoothItemsAdapter).addItem(device)
+        recyclerView.adapter?.notifyDataSetChanged()
+    }
+
+    private fun initBluetooth() {
+        BluetoothHelper.instance.checkState(context!!)
     }
 
     private fun initPairedDevices() {

@@ -22,22 +22,41 @@ class BluetoothHelper private constructor() {
         val instance: BluetoothHelper by lazy { Holder.INSTANCE }
     }
 
+    private val subscribers = mutableSetOf<BluetoothStateChangeListener>()
+
+    var lastBluetoothState = BluetoothState.DEFAULT
+        private set(value) {
+            field = value
+            subscribers.forEach { it.stateChange(value) }
+        }
+
+    fun subscribe(subscriber: BluetoothStateChangeListener) {
+        subscribers.add(subscriber)
+    }
+
+    fun unsubscribe(subscriber: BluetoothStateChangeListener) {
+        subscribers.remove(subscriber)
+    }
+
     fun checkState(context: Context): BluetoothState {
         if (bluetoothAdapter != null) {
             if (ContextCompat.checkSelfPermission(context,
-                            Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED &&
+                            Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(context,
-                            Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
-                return BluetoothState.NEED_PERMISSION
+                            Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(context,
+                            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                lastBluetoothState = BluetoothState.NEED_PERMISSION
             }
             if (bluetoothAdapter.isEnabled) {
-                return BluetoothState.READY
+                lastBluetoothState = BluetoothState.READY
             } else {
-                return BluetoothState.DISABLED
+                lastBluetoothState = BluetoothState.DISABLED
             }
         } else {
-            return BluetoothState.NOT_SUPPORTED
+            lastBluetoothState = BluetoothState.NOT_SUPPORTED
         }
+        return lastBluetoothState
     }
 
     fun getPairedDevices(): Set<BluetoothDevice> {
@@ -47,11 +66,37 @@ class BluetoothHelper private constructor() {
             throw IllegalAccessException("Check state before use this method")
         }
     }
+
+    fun cancelDiscovery() {
+        bluetoothAdapter?.cancelDiscovery()
+    }
+
+    fun startDiscovery() {
+        bluetoothAdapter?.startDiscovery()
+    }
+
+    fun isDiscovering(): Boolean {
+        if (bluetoothAdapter != null) {
+            return bluetoothAdapter.isDiscovering
+        } else {
+            throw IllegalAccessException("Check state before use this method")
+        }
+    }
+
+    fun discoveredDevice(device: BluetoothDevice) {
+        subscribers.forEach { it.discoveredDevice(device) }
+    }
+}
+
+interface BluetoothStateChangeListener {
+    fun stateChange(state: BluetoothState)
+    fun discoveredDevice(device: BluetoothDevice)
 }
 
 enum class BluetoothState {
+    DEFAULT,
     NOT_SUPPORTED,
-    DISABLED,
     NEED_PERMISSION,
+    DISABLED,
     READY
 }

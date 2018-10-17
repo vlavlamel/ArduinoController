@@ -30,8 +30,10 @@ class BluetoothItemsAdapter(val bluetoothDevices: List<BluetoothDevice>) : Recyc
         parent.findViewById<AppCompatTextView>(R.id.subtitle).text = bluetoothDevices[p1].address
     }
 
-    fun addItem(items: List<BluetoothDevice>) {
-        (bluetoothDevices as ArrayList).addAll(items)
+    fun addItem(device: BluetoothDevice) {
+        if (!bluetoothDevices.contains(device)) {
+            (bluetoothDevices as ArrayList).add(device)
+        }
     }
 
 }

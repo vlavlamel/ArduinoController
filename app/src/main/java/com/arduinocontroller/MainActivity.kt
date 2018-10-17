@@ -1,6 +1,11 @@
 package com.arduinocontroller
 
 import android.animation.ValueAnimator
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -12,6 +17,18 @@ class MainActivity : AppCompatActivity() {
 
     val animator = ValueAnimator.ofFloat(0f, 360f)
 
+    private val receiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device: BluetoothDevice =
+                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    BluetoothHelper.instance.discoveredDevice(device)
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,9 +37,20 @@ class MainActivity : AppCompatActivity() {
                 .addToBackStack(null)
                 .commit()
         initAnimator()
+        registerReceiver(receiver, IntentFilter(BluetoothDevice.ACTION_FOUND))
     }
 
-    fun initAnimator() {
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(receiver)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopDiscovering()
+    }
+
+    private fun initAnimator() {
         animator.repeatCount = ValueAnimator.INFINITE
         animator.duration = 500
     }
@@ -31,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.controller_menu, menu)
         val imageView = ImageView(this)
         imageView.setImageResource(R.drawable.ic_discovery)
-        imageView.setPadding(15,15,15,15)
+        imageView.setPadding(15, 15, 15, 15)
         imageView.setOnClickListener { actionDiscovery(it) }
         menu?.findItem(R.id.discovery)?.actionView = imageView
         return super.onCreateOptionsMenu(menu)
@@ -54,19 +82,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun actionDiscovery(view: View) {
-        if (!animator.isStarted) {
-            animator.addUpdateListener {
-                view.rotation = (it.animatedValue as Float) % 360
-                view.requestLayout()
+    private fun actionDiscovery(view: View) {
+        if (BluetoothHelper.instance.lastBluetoothState == BluetoothState.READY) {
+            if (BluetoothHelper.instance.isDiscovering()) {
+                stopDiscovering()
+            } else {
+                if (!animator.isStarted) {
+                    animator.addUpdateListener {
+                        view.rotation = (it.animatedValue as Float) % 360
+                        view.requestLayout()
+                    }
+                    animator.start()
+                } else {
+                    animator.resume()
+                }
+                BluetoothHelper.instance.startDiscovery()
             }
-            animator.start()
-        } else if (animator.isPaused) {
-            animator.resume()
         } else {
-            animator.pause()
+            BluetoothHelper.instance.checkState(this)
         }
+    }
 
+    private fun stopDiscovering() {
+        animator.pause()
+        BluetoothHelper.instance.cancelDiscovery()
     }
 
     override fun onBackPressed() {
