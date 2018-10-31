@@ -2,6 +2,7 @@ package com.arduinocontroller
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.*
@@ -34,10 +35,18 @@ class ControllerFragment : Fragment() {
 
     private fun initClickListeners() {
         arrowUp.setOnClickListener {
-            Toast.makeText(context, "Arrow Up", Toast.LENGTH_SHORT).show()
+            if (BluetoothHelper.instance.isConnected()) {
+                BluetoothHelper.instance.sendData("1")
+            } else {
+                Toast.makeText(context, "Arrow Up", Toast.LENGTH_SHORT).show()
+            }
         }
         arrowDown.setOnClickListener {
-            Toast.makeText(context, "Arrow Down", Toast.LENGTH_SHORT).show()
+            if (BluetoothHelper.instance.isConnected()) {
+                BluetoothHelper.instance.sendData("0")
+            } else {
+                Toast.makeText(context, "Arrow Down", Toast.LENGTH_SHORT).show()
+            }
         }
         arrowRight.setOnClickListener {
             Toast.makeText(context, "Arrow Right", Toast.LENGTH_SHORT).show()

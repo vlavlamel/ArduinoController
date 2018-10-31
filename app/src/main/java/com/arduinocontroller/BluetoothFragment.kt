@@ -81,7 +81,8 @@ class BluetoothFragment : Fragment(), BluetoothStateChangeListener {
                 initPairedDevices()
                 activity?.invalidateOptionsMenu()
             }
-            else -> {
+            BluetoothState.CONNECTING -> {
+
             }
         }
     }

@@ -28,6 +28,9 @@ class BluetoothItemsAdapter(val bluetoothDevices: List<BluetoothDevice>) : Recyc
         val parent = p0.itemView
         parent.findViewById<AppCompatTextView>(R.id.title).text = bluetoothDevices[p1].name
         parent.findViewById<AppCompatTextView>(R.id.subtitle).text = bluetoothDevices[p1].address
+        parent.setOnClickListener{
+            BluetoothHelper.instance.connectDevice(bluetoothDevices[p1])
+        }
     }
 
     fun addItem(device: BluetoothDevice) {

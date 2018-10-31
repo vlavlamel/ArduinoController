@@ -8,13 +8,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
     val animator = ValueAnimator.ofFloat(0f, 360f)
 
     private val receiver = object : BroadcastReceiver() {
@@ -38,11 +38,14 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         initAnimator()
         registerReceiver(receiver, IntentFilter(BluetoothDevice.ACTION_FOUND))
+        BluetoothHelper.instance.subscribe(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
+        BluetoothHelper.instance.disconnect()
+        BluetoothHelper.instance.unsubscribe(this)
     }
 
     override fun onPause() {
@@ -63,6 +66,15 @@ class MainActivity : AppCompatActivity() {
         imageView.setOnClickListener { actionDiscovery(it) }
         menu?.findItem(R.id.discovery)?.actionView = imageView
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        if (BluetoothHelper.instance.isConnected()) {
+            menu?.findItem(R.id.bluetooth)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_cn)
+        } else {
+            menu?.findItem(R.id.bluetooth)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_bluetooth)
+        }
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -89,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 if (!animator.isStarted) {
                     animator.addUpdateListener {
-                        view.rotation = (it.animatedValue as Float) % 360
+                        view.rotation = it.animatedValue as Float
                         view.requestLayout()
                     }
                     animator.start()
@@ -106,6 +118,21 @@ class MainActivity : AppCompatActivity() {
     private fun stopDiscovering() {
         animator.pause()
         BluetoothHelper.instance.cancelDiscovery()
+    }
+
+    override fun stateChange(state: BluetoothState) {
+        when (state) {
+            BluetoothState.CONNECTING -> {
+                animator.cancel()
+            }
+            BluetoothState.CONNECTED -> {
+                if (supportFragmentManager.backStackEntryCount > 1) supportFragmentManager.popBackStack()
+                invalidateOptionsMenu()
+            }
+        }
+    }
+
+    override fun discoveredDevice(device: BluetoothDevice) {
     }
 
     override fun onBackPressed() {
