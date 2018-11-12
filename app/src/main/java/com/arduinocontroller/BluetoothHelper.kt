@@ -7,8 +7,10 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import kotlinx.coroutines.*
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 class BluetoothHelper private constructor() {
     private val bluetoothAdapter: BluetoothAdapter?
@@ -28,6 +30,9 @@ class BluetoothHelper private constructor() {
 
     private val subscribers = mutableSetOf<BluetoothStateChangeListener>()
     private var socket: BluetoothSocket? = null
+    private val exceptionHandler: CoroutineContext = CoroutineExceptionHandler { _, throwable ->
+        Log.e("BluetoothHelper", throwable.message)
+    }
 
     var lastBluetoothState = BluetoothState.DEFAULT
         private set(value) {
@@ -92,13 +97,11 @@ class BluetoothHelper private constructor() {
         subscribers.forEach { it.discoveredDevice(device) }
     }
 
-    fun connectDevice(device: BluetoothDevice) = runBlocking {
+    fun connectDevice(device: BluetoothDevice) = GlobalScope.launch(Dispatchers.Main + exceptionHandler) {
         lastBluetoothState = BluetoothState.CONNECTING
         bluetoothAdapter?.cancelDiscovery()
         socket = device.createRfcommSocketToServiceRecord(UUID.fromString(defaultUUID))
-        GlobalScope.async {
-            socket?.connect()
-        }.await()
+        withContext(Dispatchers.IO) { socket?.connect() }
         lastBluetoothState = BluetoothState.CONNECTED
     }
 
@@ -110,7 +113,7 @@ class BluetoothHelper private constructor() {
         socket?.close()
     }
 
-    fun sendData(data: String) = GlobalScope.async {
+    fun sendData(data: String) = GlobalScope.launch(Dispatchers.IO + exceptionHandler) {
         if (socket != null && socket!!.isConnected) {
             socket?.outputStream?.write(data.toByteArray())
         }

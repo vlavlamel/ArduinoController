@@ -6,12 +6,11 @@
 		android:id="@+id/bluetooth"
 		android:icon="@drawable/ic_bluetooth"
 		android:title="@string/bluetooth"
-		app:showAsAction="always"/>
+		app:showAsAction="ifRoom"/>
 
 	<item
 		android:id="@+id/discovery"
-		android:icon="@drawable/ic_discovery"
 		android:title="@string/discover"
-		app:showAsAction="always"
+		app:showAsAction="ifRoom"
 		compat:actionViewClass="android.widget.ImageView"/>
 </menu>

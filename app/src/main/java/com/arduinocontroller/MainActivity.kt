@@ -13,6 +13,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
+import kotlinx.coroutines.delay
 
 class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
     val animator = ValueAnimator.ofFloat(0f, 360f)
@@ -65,7 +67,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
         imageView.setPadding(15, 15, 15, 15)
         imageView.setOnClickListener { actionDiscovery(it) }
         menu?.findItem(R.id.discovery)?.actionView = imageView
-        return super.onCreateOptionsMenu(menu)
+        return true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
         } else {
             menu?.findItem(R.id.bluetooth)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_bluetooth)
         }
-        return super.onPrepareOptionsMenu(menu)
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -84,7 +86,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
                         .add(android.R.id.content, BluetoothFragment())
                         .addToBackStack(null)
                         .commit()
-                return true
+                true
             }
             android.R.id.home -> {
                 onBackPressed()
@@ -124,10 +126,12 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
         when (state) {
             BluetoothState.CONNECTING -> {
                 animator.cancel()
+                Toast.makeText(this, "Connecting", Toast.LENGTH_SHORT).show()
             }
             BluetoothState.CONNECTED -> {
                 if (supportFragmentManager.backStackEntryCount > 1) supportFragmentManager.popBackStack()
                 invalidateOptionsMenu()
+                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
             }
         }
     }

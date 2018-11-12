@@ -57,6 +57,7 @@ class BluetoothFragment : Fragment(), BluetoothStateChangeListener {
         } else {
             menu?.findItem(R.id.discovery)?.setVisible(false)
         }
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun stateChange(state: BluetoothState) {

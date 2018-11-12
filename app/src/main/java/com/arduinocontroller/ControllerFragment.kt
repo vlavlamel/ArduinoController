@@ -26,6 +26,7 @@ class ControllerFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         menu?.findItem(R.id.bluetooth)?.setVisible(true)
         menu?.findItem(R.id.discovery)?.setVisible(false)
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     private fun initActionBar() {
@@ -36,23 +37,31 @@ class ControllerFragment : Fragment() {
     private fun initClickListeners() {
         arrowUp.setOnClickListener {
             if (BluetoothHelper.instance.isConnected()) {
-                BluetoothHelper.instance.sendData("1")
+                BluetoothHelper.instance.sendData("0")
             } else {
                 Toast.makeText(context, "Arrow Up", Toast.LENGTH_SHORT).show()
             }
         }
         arrowDown.setOnClickListener {
             if (BluetoothHelper.instance.isConnected()) {
-                BluetoothHelper.instance.sendData("0")
+                BluetoothHelper.instance.sendData("1")
             } else {
                 Toast.makeText(context, "Arrow Down", Toast.LENGTH_SHORT).show()
             }
         }
         arrowRight.setOnClickListener {
-            Toast.makeText(context, "Arrow Right", Toast.LENGTH_SHORT).show()
+            if (BluetoothHelper.instance.isConnected()) {
+                BluetoothHelper.instance.sendData("2")
+            } else {
+                Toast.makeText(context, "Arrow Right", Toast.LENGTH_SHORT).show()
+            }
         }
         arrowLeft.setOnClickListener {
-            Toast.makeText(context, "Arrow Left", Toast.LENGTH_SHORT).show()
+            if (BluetoothHelper.instance.isConnected()) {
+                BluetoothHelper.instance.sendData("3")
+            } else {
+                Toast.makeText(context, "Arrow Left", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
