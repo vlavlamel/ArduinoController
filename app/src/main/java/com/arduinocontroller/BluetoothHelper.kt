@@ -31,7 +31,7 @@ class BluetoothHelper private constructor() {
     private val subscribers = mutableSetOf<BluetoothStateChangeListener>()
     private var socket: BluetoothSocket? = null
     private val exceptionHandler: CoroutineContext = CoroutineExceptionHandler { _, throwable ->
-        Log.e("BluetoothHelper", throwable.message)
+        Log.e("BluetoothHelper", throwable.toString())
     }
 
     var lastBluetoothState = BluetoothState.DEFAULT

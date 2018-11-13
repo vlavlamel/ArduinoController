@@ -23,15 +23,17 @@ class ControllerFragment : Fragment() {
         initDragAndDrop()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        menu?.findItem(R.id.bluetooth)?.setVisible(true)
-        menu?.findItem(R.id.discovery)?.setVisible(false)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
     private fun initActionBar() {
         setHasOptionsMenu(true)
-        (activity as AppCompatActivity).setSupportActionBar(toolBar)
+        (activity as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        (activity as AppCompatActivity).supportActionBar?.setHomeButtonEnabled(false)
+
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        super.onPrepareOptionsMenu(menu)
+        menu?.findItem(R.id.bluetooth)?.setVisible(true)
+        menu?.findItem(R.id.discovery)?.setVisible(false)
     }
 
     private fun initClickListeners() {

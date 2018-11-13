@@ -14,10 +14,12 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.delay
 
 class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
     val animator = ValueAnimator.ofFloat(0f, 360f)
+    lateinit var navController: NavigationController
 
     private val receiver = object : BroadcastReceiver() {
 
@@ -34,10 +36,10 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportFragmentManager.beginTransaction()
-                .replace(android.R.id.content, ControllerFragment())
-                .addToBackStack(null)
-                .commit()
+        setContentView(R.layout.activity_main)
+        setSupportActionBar(toolBar)
+        navController = NavigationController(supportFragmentManager)
+        navController.setInitial(ControllerFragment())
         initAnimator()
         registerReceiver(receiver, IntentFilter(BluetoothDevice.ACTION_FOUND))
         BluetoothHelper.instance.subscribe(this)
@@ -67,7 +69,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
         imageView.setPadding(15, 15, 15, 15)
         imageView.setOnClickListener { actionDiscovery(it) }
         menu?.findItem(R.id.discovery)?.actionView = imageView
-        return true
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
@@ -76,16 +78,13 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
         } else {
             menu?.findItem(R.id.bluetooth)?.icon = ContextCompat.getDrawable(this, R.drawable.ic_bluetooth)
         }
-        return true
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item?.itemId) {
             R.id.bluetooth -> {
-                supportFragmentManager.beginTransaction()
-                        .add(android.R.id.content, BluetoothFragment())
-                        .addToBackStack(null)
-                        .commit()
+                navController.goNext(BluetoothFragment())
                 true
             }
             android.R.id.home -> {
@@ -129,7 +128,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
                 Toast.makeText(this, "Connecting", Toast.LENGTH_SHORT).show()
             }
             BluetoothState.CONNECTED -> {
-                if (supportFragmentManager.backStackEntryCount > 1) supportFragmentManager.popBackStack()
+                navController.goBack()
                 invalidateOptionsMenu()
                 Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
             }
@@ -141,9 +140,7 @@ class MainActivity : AppCompatActivity(), BluetoothStateChangeListener {
 
     override fun onBackPressed() {
         animator.cancel()
-        if (supportFragmentManager.backStackEntryCount == 1) {
-            finish()
-        } else {
+        if (!navController.goBack()) {
             super.onBackPressed()
         }
     }

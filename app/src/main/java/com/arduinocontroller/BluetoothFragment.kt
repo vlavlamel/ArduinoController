@@ -44,20 +44,19 @@ class BluetoothFragment : Fragment(), BluetoothStateChangeListener {
 
     private fun initActionBar() {
         setHasOptionsMenu(true)
-        (activity as AppCompatActivity).setSupportActionBar(toolBar)
         (activity as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
         (activity as AppCompatActivity).supportActionBar?.setHomeButtonEnabled(true)
 
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        super.onPrepareOptionsMenu(menu)
         menu?.findItem(R.id.bluetooth)?.setVisible(false)
         if (BluetoothHelper.instance.lastBluetoothState == BluetoothState.READY) {
             menu?.findItem(R.id.discovery)?.setVisible(true)
         } else {
             menu?.findItem(R.id.discovery)?.setVisible(false)
         }
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun stateChange(state: BluetoothState) {

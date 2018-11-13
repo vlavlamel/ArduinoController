@@ -1,41 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ViewFlipper
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/viewFlipper"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:background="@android:color/white"
-	android:clickable="true"
-	android:orientation="vertical">
+	android:layout_height="match_parent">
 
-	<android.support.v7.widget.Toolbar
-		android:id="@+id/toolBar"
+	<android.support.v7.widget.RecyclerView
+		android:id="@+id/recyclerView"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:background="@color/colorPrimary"/>
+		android:layout_height="match_parent"
+		android:padding="10dp"/>
 
-	<ViewFlipper
-		android:id="@+id/viewFlipper"
+	<android.support.v7.widget.AppCompatTextView
+		android:id="@+id/errorText"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:padding="10dp"
+		android:textColor="@android:color/black"
+		android:textSize="15sp"
+		tools:text="@string/no_permission_bluetooth"/>
 
-		<android.support.v7.widget.RecyclerView
-			android:id="@+id/recyclerView"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:padding="10dp"/>
-
-		<android.support.v7.widget.AppCompatTextView
-			android:id="@+id/errorText"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:gravity="center"
-			android:padding="10dp"
-			android:textColor="@android:color/black"
-			android:textSize="15sp"
-			tools:text="@string/no_permission_bluetooth"/>
-
-	</ViewFlipper>
-
-</LinearLayout>
+</ViewFlipper>
